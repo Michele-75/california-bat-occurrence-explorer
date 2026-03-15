@@ -1,4 +1,17 @@
-.Rproj.user
+# Raw data
+data/raw/
+
+# Large raster files
+*.tif
+*.tiff
+
+# Geodatabases
+*.gdb/
+
+# R environment
 .Rhistory
 .RData
-.Ruserdata
+.Rproj.user
+
+# Credentials
+.Renviron

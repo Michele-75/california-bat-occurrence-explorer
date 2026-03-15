@@ -63,13 +63,9 @@ DIR_APP        <- here("data", "processed", "app")
 
 # -----------------------------
 
-DIR_BOUND_RAW  <- here("data", "raw", "boundaries")
+
 DIR_GBIF_RAW   <- here("data", "raw", "gbif")
 DIR_COV_RAW    <- here("data", "raw", "covariates")
-
-DIR_GRID_PROC  <- here("data", "processed", "grid")
-DIR_POINTS_PROC<- here("data", "processed", "points")
-DIR_COV_PROC   <- here("data", "processed", "covariates")
 DIR_APP_PROC   <- here("data", "processed", "app")
 
 # -----------------------------
@@ -81,14 +77,8 @@ DIR_APP_PROC   <- here("data", "processed", "app")
 dir.create(DIR_RAW, showWarnings = FALSE, recursive = TRUE)
 dir.create(DIR_PROCESSED, showWarnings = FALSE, recursive = TRUE)
 
-dir.create(DIR_BOUND_RAW, showWarnings = FALSE, recursive = TRUE)
 dir.create(DIR_GBIF_RAW, showWarnings = FALSE, recursive = TRUE)
 dir.create(DIR_COV_RAW, showWarnings = FALSE, recursive = TRUE)
-
-dir.create(DIR_GRID_PROC, showWarnings = FALSE, recursive = TRUE)
-dir.create(DIR_POINTS_PROC, showWarnings = FALSE, recursive = TRUE)
-dir.create(DIR_COV_PROC, showWarnings = FALSE, recursive = TRUE)
-
 dir.create(DIR_APP_PROC, showWarnings = FALSE, recursive = TRUE)
 
 # -----------------------------

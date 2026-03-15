@@ -1,8 +1,8 @@
 # R/01_get_clean_bat_points_app.R
 # Run with:
-# source(here::here("R", "01_get_clean_bat_points_app.R"))
+# source(here::here("processing_scripts", "01_get_clean_bat_points_app.R"))
 
-source(here::here("R", "00_setup_app.R"))
+source(here::here("processing_scripts", "00_setup_app.R"))
 
 library(rgbif)
 library(janitor)
@@ -90,7 +90,18 @@ bat_points_sf <- st_as_sf(
   remove = FALSE
 )
 
-# ---- Save app-ready point file ----
+options(tigris_use_cache = TRUE)
+
+ca <- tigris::states(cb = TRUE, year = 2022) |>
+  st_as_sf() |>
+  filter(STUSPS == "CA") |>
+  st_make_valid() |>
+  st_transform(4326)
+
+inside_ca <- st_intersects(bat_points_sf, ca, sparse = FALSE)[, 1]
+
+bat_points_sf <- bat_points_sf[inside_ca, ]
+
 saveRDS(bat_points_sf, FILE_BAT_POINTS)
 
 message("Saved app-ready bat points to: ", FILE_BAT_POINTS)

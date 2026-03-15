@@ -37,12 +37,16 @@ if (!inherits(bat_points, "sf")) {
   stop("bat_points_app.rds must contain an sf object.")
 }
 
+if (!"species_label" %in% names(bat_points)) {
+  bat_points$species_label <- bat_points$species
+}
+
 bat_points <- bat_points |>
   st_transform(4326) |>
   mutate(
     gbif_id = as.character(gbif_id),
     species = as.character(species),
-    species_label = if ("species_label" %in% names(.)) as.character(species_label) else as.character(species),
+    species_label = as.character(species_label),
     year = as.integer(year)
   )
 
@@ -215,12 +219,13 @@ server <- function(input, output, session) {
     
     var <- input$covariate_layer
     pal <- make_palette(app_grid[[var]])
+    fill_vals <- pal(app_grid[[var]])
     
     leafletProxy("map", data = app_grid) |>
       clearShapes() |>
       clearControls() |>
       addPolygons(
-        fillColor = ~pal(.data[[var]]),
+        fillColor = fill_vals,
         fillOpacity = input$grid_opacity,
         color = "#666666",
         weight = 0.3,

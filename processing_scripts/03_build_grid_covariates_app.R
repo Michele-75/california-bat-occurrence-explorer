@@ -1,8 +1,8 @@
 # R/03_build_grid_covariates_app.R
 # Run with:
-# source(here::here("R", "03_build_grid_covariates_app.R"))
+# source(here::here("processing_scripts", "03_build_grid_covariates_app.R"))
 
-source(here::here("R", "00_setup_app.R"))
+source(here::here("processing_scripts", "00_setup_app.R"))
 
 library(sf)
 library(terra)

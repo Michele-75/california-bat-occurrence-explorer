@@ -91,6 +91,21 @@ layer_choices <- c(
   "Protected area (%)" = "pct_protected"
 )
 
+#Set colors for different species points
+species_palette_values <- c(
+  "#FF4E3A",  # vivid red-orange
+  "#00B0F6",  # bright blue
+  "#FFD23F",  # golden yellow
+  "#E76BF3",  # magenta
+  "#39B600",  # bright green
+  "#F98400"   # orange
+)
+
+species_palette <- setNames(
+  species_palette_values[seq_along(species_choices)],
+  species_choices
+)
+
 # -----------------------------
 # Helper functions
 # -----------------------------
@@ -145,14 +160,47 @@ make_point_popup <- function(dat) {
   ))
 }
 
-
-
 #Leaflet color function- creates a mapping from numeric values to colors
 make_palette <- function(x) {
   colorNumeric(
     palette = "viridis",
     domain = x,
     na.color = "transparent"
+  )
+}
+
+#Make species key custon html
+make_species_key_html <- function(species_counts, species_palette) {
+  rows <- lapply(seq_len(nrow(species_counts)), function(i) {
+    sp <- species_counts$species_label[i]
+    n  <- species_counts$n[i]
+    col <- species_palette[[sp]]
+    
+    tags$div(
+      style = "display:flex; align-items:center; margin-bottom:6px;",
+      tags$div(
+        style = paste0(
+          "width:14px; height:14px; border-radius:50%; margin-right:8px; ",
+          "background:", col, "; border:1px solid #333; flex-shrink:0;"
+        )
+      ),
+      tags$span(paste0(sp, " (", comma(n), ")"))
+    )
+  })
+  
+  as.character(
+    tags$div(
+      style = paste0(
+        "background: rgba(255,255,255,0.95); ",
+        "padding: 8px 10px; border-radius: 4px; ",
+        "box-shadow: 0 1px 5px rgba(0,0,0,0.3); font-size: 13px;"
+      ),
+      tags$div(
+        style = "font-weight: 600; margin-bottom: 6px;",
+        "Species key"
+      ),
+      rows
+    )
   )
 }
 
@@ -228,9 +276,12 @@ server <- function(input, output, session) {
       )
   })
   
+
   output$map <- renderLeaflet({
     leaflet() |>
       addProviderTiles(providers$CartoDB.Positron) |>
+      addMapPane("gridPane", zIndex = 410) |>
+      addMapPane("pointPane", zIndex = 420) |>
       setView(lng = -119.5, lat = 37.2, zoom = 6)
   })
   
@@ -243,21 +294,23 @@ server <- function(input, output, session) {
     
     leafletProxy("map", data = app_grid) |>
       clearShapes() |>
-      clearControls() |>
+      removeControl("bg_legend") |>
       addPolygons(
         fillColor = fill_vals,
         fillOpacity = input$grid_opacity,
         color = "#666666",
         weight = 0.3,
         popup = make_grid_popup(app_grid, var),
-        group = "grid"
+        group = "grid",
+        options = pathOptions(pane = "gridPane")
       ) |>
       addLegend(
         position = "bottomright",
         pal = pal,
         values = app_grid[[var]],
         title = pretty_layer_name(var),
-        opacity = 1
+        opacity = 1,
+        layerId = "bg_legend"
       )
   })
   
@@ -265,19 +318,40 @@ server <- function(input, output, session) {
     pts <- filtered_points()
     
     leafletProxy("map") |>
-      clearGroup("points")
+      clearGroup("points") |>
+      removeControl("species_key_control")
     
     if (isTRUE(input$show_points) && nrow(pts) > 0) {
+      point_colors <- unname(species_palette[pts$species_label])
+      
+      species_counts <- pts |>
+        st_drop_geometry() |>
+        count(species_label, name = "n") |>
+        arrange(match(species_label, input$species_filter))
+      
+      species_key_html <- make_species_key_html(species_counts, species_palette)
+      
       leafletProxy("map", data = pts) |>
         addCircleMarkers(
-          radius = 3,
-          stroke = FALSE,
-          fillOpacity = 0.6,
+          radius = 4,
+          stroke = TRUE,
+          color = "#222222",
+          weight = 1,
+          fillColor = point_colors,
+          fillOpacity = 0.95,
           popup = make_point_popup(pts),
-          group = "points"
+          group = "points",
+          options = pathOptions(pane = "pointPane")
+        ) |>
+        addControl(
+          html = species_key_html,
+          position = "topright",
+          layerId = "species_key_control"
         )
     }
   })
 }
+
+
 
 shinyApp(ui = ui, server = server)

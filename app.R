@@ -41,6 +41,8 @@ if (!"species_label" %in% names(bat_points)) {
   bat_points$species_label <- bat_points$species
 }
 
+#Convert grid to WGS84 lat/long and standardize points and covariates
+
 bat_points <- bat_points |>
   st_transform(4326) |>
   mutate(
@@ -66,18 +68,22 @@ app_grid <- grid |>
 # -----------------------------
 # UI choices
 # -----------------------------
+
+#Choices in the species filter
 species_choices <- bat_points |>
   st_drop_geometry() |>
   distinct(species_label) |>
   arrange(species_label) |>
   pull(species_label)
 
+#Choices in the year filter
 year_choices <- bat_points |>
   st_drop_geometry() |>
   distinct(year) |>
   arrange(year) |>
   pull(year)
 
+#Choices for background layer
 layer_choices <- c(
   "Light pollution" = "mean_radiance",
   "Developed land (%)" = "pct_developed",
@@ -88,6 +94,8 @@ layer_choices <- c(
 # -----------------------------
 # Helper functions
 # -----------------------------
+
+#Used for legends and popups
 pretty_layer_name <- function(var) {
   dplyr::case_when(
     var == "mean_radiance" ~ "Light pollution",
@@ -98,6 +106,7 @@ pretty_layer_name <- function(var) {
   )
 }
 
+#How values appear in popups
 format_layer_value <- function(x, var) {
   if (is.na(x)) return("NA")
   
@@ -116,6 +125,7 @@ format_layer_value <- function(x, var) {
   as.character(x)
 }
 
+#Create popup text for grid cells
 make_grid_popup <- function(dat, var) {
   vals <- vapply(dat[[var]], format_layer_value, character(1), var = var)
   HTML(sprintf(
@@ -126,6 +136,7 @@ make_grid_popup <- function(dat, var) {
   ))
 }
 
+#Create popup text for bat points
 make_point_popup <- function(dat) {
   HTML(sprintf(
     "<strong>Species:</strong> %s<br/><strong>Year:</strong> %s",
@@ -134,6 +145,9 @@ make_point_popup <- function(dat) {
   ))
 }
 
+
+
+#Leaflet color function- creates a mapping from numeric values to colors
 make_palette <- function(x) {
   colorNumeric(
     palette = "viridis",
@@ -150,13 +164,15 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
+      #Species filter
       selectInput(
         inputId = "species_filter",
         label = "Species",
         choices = species_choices,
-        selected = species_choices,
-        multiple = TRUE
+        selected = species_choices, #Default selection
+        multiple = TRUE #User can select more than one
       ),
+      #Year filter
       selectInput(
         inputId = "year_filter",
         label = "Year(s)",
@@ -164,17 +180,20 @@ ui <- fluidPage(
         selected = year_choices,
         multiple = TRUE
       ),
-      radioButtons(
+      #Radio button- select one covariate layer at a time
+      radioButtons( 
         inputId = "covariate_layer",
         label = "Background layer",
         choices = layer_choices,
         selected = "mean_radiance"
       ),
+      #Checkbox- show bat points or not
       checkboxInput(
         inputId = "show_points",
         label = "Show bat observation points",
         value = TRUE
       ),
+      #Background opacity slider
       sliderInput(
         inputId = "grid_opacity",
         label = "Background opacity",
@@ -183,7 +202,8 @@ ui <- fluidPage(
         value = 0.7,
         step = 0.05
       ),
-      hr(),
+      #Explanatory text
+      hr(), 
       p("This map shows GBIF bat observations for three focal California species with one selected landscape layer displayed on a 10 km statewide grid.")
     ),
     mainPanel(

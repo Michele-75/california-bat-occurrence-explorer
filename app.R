@@ -75,18 +75,14 @@ species_choices <- bat_points |>
   arrange(species_label) |>
   pull(species_label)
 
-# Choices in the year filter
-year_choices <- bat_points |>
-  st_drop_geometry() |>
-  distinct(year) |>
-  arrange(year) |>
-  pull(year)
+# Year range for slider
+year_range <- range(bat_points$year, na.rm = TRUE)
 
 # Choices for background layer
 layer_choices <- c(
+  "Population density" = "pop_density",
   "Light pollution" = "mean_radiance",
   "Developed land (%)" = "pct_developed",
-  "Population density" = "pop_density",
   "Protected area (%)" = "pct_protected"
 )
 
@@ -244,25 +240,44 @@ make_palette <- function(x, var) {
   }
 }
 
-# Create popup text for grid cells
-make_grid_popup <- function(dat, var) {
-  vals <- vapply(dat[[var]], format_layer_value, character(1), var = var)
+# Create popup text for grid cells — returns a list of HTML strings,
+# one per row, so each polygon gets its own popup.
+# Shows all covariates, with the active layer highlighted in bold.
+make_grid_popup <- function(dat, active_var) {
+  all_vars <- c("pop_density", "mean_radiance", "pct_developed", "pct_protected")
   
-  HTML(sprintf(
-    "<strong>Cell ID:</strong> %s<br/><strong>%s:</strong> %s",
-    dat$cell_id,
-    pretty_layer_name(var),
-    vals
-  ))
+  lapply(seq_len(nrow(dat)), function(i) {
+    lines <- vapply(all_vars, function(v) {
+      val <- format_layer_value(dat[[v]][i], v)
+      lab <- pretty_layer_name(v)
+      if (v == active_var) {
+        sprintf("<strong>%s: %s</strong>", lab, val)
+      } else {
+        sprintf("%s: %s", lab, val)
+      }
+    }, character(1))
+    
+    HTML(paste0(
+      "<strong>Cell ID:</strong> ", dat$cell_id[i], "<br/>",
+      paste(lines, collapse = "<br/>")
+    ))
+  })
 }
 
-# Create popup text for bat points
+# Create popup text for bat points — one popup per observation.
 make_point_popup <- function(dat) {
-  HTML(sprintf(
-    "<strong>Species:</strong> %s<br/><strong>Year:</strong> %s",
-    dat$species_label,
-    dat$year
-  ))
+  lapply(seq_len(nrow(dat)), function(i) {
+    HTML(sprintf(
+      paste0(
+        "<strong>Species:</strong> %s<br/>",
+        "<strong>Year:</strong> %s<br/>",
+        "<strong>GBIF ID:</strong> %s"
+      ),
+      dat$species_label[i],
+      dat$year[i],
+      dat$gbif_id[i]
+    ))
+  })
 }
 
 # Make species key custom html
@@ -308,28 +323,64 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      # Species filter
-      selectInput(
-        inputId = "species_filter",
-        label = "Species",
-        choices = species_choices,
+      # Species filter — selectize gives pill-style tags with × buttons
+      selectizeInput(
+        inputId  = "species_filter",
+        label    = "Species",
+        choices  = species_choices,
         selected = species_choices,
-        multiple = TRUE
+        multiple = TRUE,
+        options  = list(
+          plugins = list("remove_button"),
+          placeholder = "Select species..."
+        )
       ),
-      # Year filter
-      selectInput(
-        inputId = "year_filter",
-        label = "Year(s)",
-        choices = year_choices,
-        selected = year_choices,
-        multiple = TRUE
+      # Year filter mode toggle
+      radioButtons(
+        inputId  = "year_mode",
+        label    = "Year filter mode",
+        choices  = c("Range" = "range", "Animate" = "animate"),
+        selected = "range",
+        inline   = TRUE
+      ),
+      # Range slider (shown in range mode)
+      conditionalPanel(
+        condition = "input.year_mode == 'range'",
+        sliderInput(
+          inputId = "year_range",
+          label   = "Year range",
+          min     = year_range[1],
+          max     = year_range[2],
+          value   = year_range,
+          step    = 1,
+          sep     = "",
+          ticks   = FALSE
+        )
+      ),
+      # Animated single-year slider (shown in animate mode)
+      conditionalPanel(
+        condition = "input.year_mode == 'animate'",
+        sliderInput(
+          inputId = "year_animate",
+          label   = "Observations through",
+          min     = year_range[1],
+          max     = year_range[2],
+          value   = year_range[1],
+          step    = 1,
+          sep     = "",
+          ticks   = FALSE,
+          animate = animationOptions(
+            interval = 1200,   # ms between steps
+            loop     = TRUE
+          )
+        )
       ),
       # Radio button — select one covariate layer at a time
       radioButtons(
         inputId = "covariate_layer",
         label = "Background layer",
         choices = layer_choices,
-        selected = "mean_radiance"
+        selected = "pop_density"
       ),
       # Checkbox — show bat points or not
       checkboxInput(
@@ -344,7 +395,8 @@ ui <- fluidPage(
         min = 0,
         max = 1,
         value = 0.7,
-        step = 0.05
+        step = 0.05,
+        ticks   = FALSE,
       ),
       # Explanatory text
       hr(),
@@ -367,13 +419,24 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   filtered_points <- reactive({
-    req(input$species_filter, input$year_filter)
+    req(input$species_filter, input$year_mode)
     
-    bat_points |>
-      filter(
-        species_label %in% input$species_filter,
-        year %in% input$year_filter
-      )
+    if (input$year_mode == "animate") {
+      req(input$year_animate)
+      bat_points |>
+        filter(
+          species_label %in% input$species_filter,
+          year <= input$year_animate
+        )
+    } else {
+      req(input$year_range)
+      bat_points |>
+        filter(
+          species_label %in% input$species_filter,
+          year >= input$year_range[1],
+          year <= input$year_range[2]
+        )
+    }
   })
   
   output$map <- renderLeaflet({

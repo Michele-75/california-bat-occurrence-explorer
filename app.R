@@ -41,7 +41,7 @@ if (!"species_label" %in% names(bat_points)) {
   bat_points$species_label <- bat_points$species
 }
 
-#Convert grid to WGS84 lat/long and standardize points and covariates
+#Convert spatial data to WGS84 lat/long and standardize fields
 
 bat_points <- bat_points |>
   st_transform(4326) |>
@@ -69,21 +69,21 @@ app_grid <- grid |>
 # UI choices
 # -----------------------------
 
-#Choices in the species filter
+# Choices in the species filter
 species_choices <- bat_points |>
   st_drop_geometry() |>
   distinct(species_label) |>
   arrange(species_label) |>
   pull(species_label)
 
-#Choices in the year filter
+# Choices in the year filter
 year_choices <- bat_points |>
   st_drop_geometry() |>
   distinct(year) |>
   arrange(year) |>
   pull(year)
 
-#Choices for background layer
+# Choices for background layer
 layer_choices <- c(
   "Light pollution" = "mean_radiance",
   "Developed land (%)" = "pct_developed",
@@ -91,7 +91,7 @@ layer_choices <- c(
   "Protected area (%)" = "pct_protected"
 )
 
-#Set colors for different species points
+# Set colors for different species points
 species_palette_values <- c(
   "#FF4E3A",  # vivid red-orange
   "#00B0F6",  # bright blue
@@ -110,18 +110,65 @@ species_palette <- setNames(
 # Helper functions
 # -----------------------------
 
-#Used for legends and popups
-pretty_layer_name <- function(var) {
-  dplyr::case_when(
-    var == "mean_radiance" ~ "Light pollution",
-    var == "pct_developed" ~ "Developed land (%)",
-    var == "pop_density" ~ "Population density",
-    var == "pct_protected" ~ "Protected area (%)",
-    TRUE ~ var
+# Metadata for each map layer, including transforms for display
+layer_meta <- function(var) {
+  switch(
+    var,
+    "mean_radiance" = list(
+      label = "Light pollution",
+      transform = log1p,
+      inverse = expm1,
+      legend_title = "Light pollution (log scale)",
+      digits = 2
+    ),
+    "pct_developed" = list(
+      label = "Developed land (%)",
+      transform = identity,
+      inverse = identity,
+      legend_title = "Developed land (%)",
+      digits = 1
+    ),
+    "pop_density" = list(
+      label = "Population density",
+      transform = log1p,
+      inverse = expm1,
+      legend_title = "Population density (people/km², log scale)",
+      digits = 0
+    ),
+    "pct_protected" = list(
+      label = "Protected area (%)",
+      transform = identity,
+      inverse = identity,
+      legend_title = "Protected area (%)",
+      digits = 1
+    ),
+    stop("Unknown layer: ", var)
   )
 }
 
-#How values appear in popups
+# Used for legends and popups
+pretty_layer_name <- function(var) {
+  layer_meta(var)$label
+}
+
+# Return mapped values used for choropleth coloring
+get_mapped_values <- function(x, var) {
+  meta <- layer_meta(var)
+  meta$transform(x)
+}
+
+# Legend formatter: show labels in original units even when mapped on log scale
+make_legend_lab_format <- function(var) {
+  meta <- layer_meta(var)
+  
+  labelFormat(
+    digits = meta$digits,
+    big.mark = ",",
+    transform = meta$inverse
+  )
+}
+
+# How values appear in popups
 format_layer_value <- function(x, var) {
   if (is.na(x)) return("NA")
   
@@ -134,15 +181,16 @@ format_layer_value <- function(x, var) {
   }
   
   if (var == "pop_density") {
-    return(comma(round(x, 1)))
+    return(comma(round(x, 0)))
   }
   
   as.character(x)
 }
 
-#Create popup text for grid cells
+# Create popup text for grid cells
 make_grid_popup <- function(dat, var) {
   vals <- vapply(dat[[var]], format_layer_value, character(1), var = var)
+  
   HTML(sprintf(
     "<strong>Cell ID:</strong> %s<br/><strong>%s:</strong> %s",
     dat$cell_id,
@@ -151,7 +199,7 @@ make_grid_popup <- function(dat, var) {
   ))
 }
 
-#Create popup text for bat points
+# Create popup text for bat points
 make_point_popup <- function(dat) {
   HTML(sprintf(
     "<strong>Species:</strong> %s<br/><strong>Year:</strong> %s",
@@ -160,16 +208,18 @@ make_point_popup <- function(dat) {
   ))
 }
 
-#Leaflet color function- creates a mapping from numeric values to colors
-make_palette <- function(x) {
+# Leaflet color function: maps transformed values to colors
+make_palette <- function(x, var) {
+  mapped_x <- get_mapped_values(x, var)
+  
   colorNumeric(
     palette = "viridis",
-    domain = x,
+    domain = mapped_x,
     na.color = "transparent"
   )
 }
 
-#Make species key custon html
+# Make species key custom html
 make_species_key_html <- function(species_counts, species_palette) {
   rows <- lapply(seq_len(nrow(species_counts)), function(i) {
     sp <- species_counts$species_label[i]
@@ -289,8 +339,11 @@ server <- function(input, output, session) {
     req(input$covariate_layer)
     
     var <- input$covariate_layer
-    pal <- make_palette(app_grid[[var]])
-    fill_vals <- pal(app_grid[[var]])
+    meta <- layer_meta(var)
+    
+    mapped_vals <- get_mapped_values(app_grid[[var]], var)
+    pal <- make_palette(app_grid[[var]], var)
+    fill_vals <- pal(mapped_vals)
     
     leafletProxy("map", data = app_grid) |>
       clearShapes() |>
@@ -307,9 +360,10 @@ server <- function(input, output, session) {
       addLegend(
         position = "bottomright",
         pal = pal,
-        values = app_grid[[var]],
-        title = pretty_layer_name(var),
+        values = mapped_vals,
+        title = meta$legend_title,
         opacity = 1,
+        labFormat = make_legend_lab_format(var),
         layerId = "bg_legend"
       )
   })
@@ -351,7 +405,5 @@ server <- function(input, output, session) {
     }
   })
 }
-
-
 
 shinyApp(ui = ui, server = server)

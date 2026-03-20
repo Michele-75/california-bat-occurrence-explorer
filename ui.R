@@ -8,25 +8,43 @@ page_sidebar(
   title = div(
     style = "display:flex; align-items:baseline; gap:12px;",
     span("California Bat Observations Explorer",
-         style = "font-size:1.4rem; font-weight:700;"),
+         style = "font-size:1.4rem; font-weight:700; color:#ffffff;"),
     span("GBIF \u00b7 10 km grid \u00b7 environmental covariates",
-         style = "font-size:0.85rem; color:#6c757d; font-weight:400;")
+         style = "font-size:0.85rem; color:#d4e0d4; font-weight:400;")
   ),
   
   theme = bs_theme(
-    version   = 5,
-    bootswatch = "flatly",
-    base_font = font_google("Source Sans Pro"),
-    "sidebar-width" = "300px"
+    version    = 5,
+    bg         = "#fafaf7",       # warm off-white background
+    fg         = "#2c3e2d",       # dark forest charcoal text
+    primary    = "#3a6b4c",       # deep pine green — buttons, accents
+    secondary  = "#7a8b72",       # sage gray — muted secondary elements
+    success    = "#5a8c5a",       # earthy green
+    info       = "#5b8fa8",       # slate blue — subtle info accents
+    "font-size-base" = "0.92rem",
+    base_font  = font_google("Lato"),
+    heading_font = font_google("Lato"),
+    "sidebar-width" = "300px",
+    "sidebar-bg"    = "#e4e6de",  # slightly darker warm gray sidebar
+    "navbar-bg"     = "#3e5e47"   # mid-tone forest green title bar
   ),
   
   # ---- Sidebar ----
   sidebar = sidebar(
     width = 300,
     
+    # Tighten default Shiny input spacing
+    tags$style(HTML("
+      .sidebar .form-group { margin-bottom: 0.5rem; }
+      .sidebar .control-label { margin-bottom: 0.15rem; font-size: 0.85rem; }
+      .sidebar .shiny-input-container { margin-bottom: 0.4rem; }
+      .sidebar .radio { margin-top: 0.1rem; margin-bottom: 0.1rem; }
+      .sidebar hr { margin: 8px 0; }
+    ")),
+    
     # -- Observation filters --
     tags$div(
-      style = "font-weight:600; font-size:0.85rem; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;",
+      style = "font-weight:600; font-size:0.8rem; color:#5a6b52; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;",
       "Observation filters"
     ),
     
@@ -82,12 +100,18 @@ page_sidebar(
       )
     ),
     
-    hr(style = "margin:12px 0;"),
+    hr(),
     
     # -- Map display --
     tags$div(
-      style = "font-weight:600; font-size:0.85rem; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;",
+      style = "font-weight:600; font-size:0.8rem; color:#5a6b52; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;",
       "Map display"
+    ),
+    
+    checkboxInput(
+      inputId = "show_points",
+      label   = "Show bat observation points",
+      value   = TRUE
     ),
     
     radioButtons(
@@ -95,12 +119,6 @@ page_sidebar(
       label    = "Background layer",
       choices  = layer_choices,
       selected = "pop_density"
-    ),
-    
-    checkboxInput(
-      inputId = "show_points",
-      label   = "Show bat observation points",
-      value   = TRUE
     ),
     
     sliderInput(
@@ -125,11 +143,11 @@ page_sidebar(
     # -- About --
     tags$details(
       tags$summary(
-        style = "font-weight:600; font-size:0.85rem; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer;",
+        style = "font-weight:600; font-size:0.85rem; color:#5a6b52; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer;",
         "About this app"
       ),
       tags$div(
-        style = "font-size:0.82rem; color:#555; margin-top:8px; line-height:1.5;",
+        style = "font-size:0.82rem; color:#4a5a44; margin-top:8px; line-height:1.5;",
         p("Interactive map of GBIF bat occurrence records across California,",
           "overlaid on a 10 km statewide grid with precomputed",
           "environmental covariates."),

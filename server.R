@@ -33,14 +33,53 @@ function(input, output, session) {
       addProviderTiles(providers$CartoDB.Positron) |>
       addMapPane("gridPane", zIndex = 410) |>
       addMapPane("pointPane", zIndex = 420) |>
-      setView(lng = -119.5, lat = 37.2, zoom = 6)
+      setView(lng = -119.5, lat = 37.2, zoom = 6) |>
+      # Draw toolbar — rectangle only, for zoom-to-area
+      addDrawToolbar(
+        targetGroup  = "draw",
+        polylineOptions  = FALSE,
+        polygonOptions   = FALSE,
+        circleOptions    = FALSE,
+        markerOptions    = FALSE,
+        circleMarkerOptions = FALSE,
+        rectangleOptions = drawRectangleOptions(
+          shapeOptions = drawShapeOptions(
+            color       = "#FF4E3A",
+            fillColor   = "#FF4E3A",
+            fillOpacity = 0.1,
+            weight      = 2
+          )
+        ),
+        editOptions = editToolbarOptions(
+          edit = FALSE,
+          remove = TRUE
+        )
+      )
+  })
+  
+  # ---- Draw-to-zoom: zoom to drawn rectangle, then remove it ----
+  observeEvent(input$map_draw_new_feature, {
+    feat <- input$map_draw_new_feature
+    
+    if (feat$geometry$type == "Polygon") {
+      coords <- feat$geometry$coordinates[[1]]
+      lngs <- vapply(coords, `[[`, numeric(1), 1)
+      lats <- vapply(coords, `[[`, numeric(1), 2)
+      
+      leafletProxy("map") |>
+        fitBounds(
+          lng1 = min(lngs), lat1 = min(lats),
+          lng2 = max(lngs), lat2 = max(lats)
+        ) |>
+        removeShape(layerId = feat$properties$`_leaflet_id`) |>
+        clearGroup("draw")
+    }
   })
   
   # ---- Grid layer observer ----
-  # Redraws polygons only when the covariate layer changes.
-  # Opacity changes are handled separately below (no redraw needed).
+  # Redraws polygons when covariate layer OR opacity changes.
   observe({
-    req(input$covariate_layer)
+    req(input$covariate_layer, input$grid_opacity)
     
     var     <- input$covariate_layer
     meta    <- layer_meta(var)
@@ -54,7 +93,7 @@ function(input, output, session) {
       addPolygons(
         layerId     = app_grid$cell_id,
         fillColor   = fill_vals,
-        fillOpacity = isolate(input$grid_opacity),
+        fillOpacity = input$grid_opacity,
         color       = "#666666",
         weight      = 0.3,
         popup       = make_grid_popup(app_grid, var),
@@ -95,30 +134,6 @@ function(input, output, session) {
     }
   })
   
-  # ---- Opacity-only observer ----
-  # Updates polygon style in-place without clearing and redrawing.
-  # Uses JavaScript to set opacity on every polygon in the grid group.
-  observe({
-    req(input$grid_opacity)
-    
-    # Avoid firing on first load (the grid observer handles that)
-    req(input$covariate_layer)
-    
-    leafletProxy("map") |>
-      htmlwidgets::onRender(sprintf(
-        "function(el, x) {
-           var map = this;
-           map.eachLayer(function(layer) {
-             if (layer.options && layer.options.pane === 'gridPane') {
-               layer.setStyle({ fillOpacity: %f });
-             }
-           });
-         }",
-        input$grid_opacity
-      ))
-  }) |>
-    bindEvent(input$grid_opacity)
-  
   # ---- Observation points observer ----
   observe({
     pts <- filtered_points()
@@ -139,21 +154,15 @@ function(input, output, session) {
       
       leafletProxy("map", data = pts) |>
         addCircleMarkers(
-          radius         = 4,
-          stroke         = TRUE,
-          color          = "#222222",
-          weight         = 1,
-          fillColor      = point_colors,
-          fillOpacity    = 0.95,
-          popup          = make_point_popup(pts),
-          group          = "points",
-          options        = pathOptions(pane = "pointPane"),
-          clusterOptions = markerClusterOptions(
-            maxClusterRadius  = 40,
-            spiderfyOnMaxZoom = TRUE,
-            zoomToBoundsOnClick = TRUE,
-            disableClusteringAtZoom = 10
-          )
+          radius      = 4,
+          stroke      = TRUE,
+          color       = "#222222",
+          weight      = 1,
+          fillColor   = point_colors,
+          fillOpacity = 0.95,
+          popup       = make_point_popup(pts),
+          group       = "points",
+          options     = pathOptions(pane = "pointPane")
         ) |>
         addControl(
           html     = species_key_html,

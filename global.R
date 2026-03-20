@@ -81,16 +81,8 @@ year_range <- range(bat_points$year, na.rm = TRUE)
 # -----------------------------
 # Species colour palette
 # -----------------------------
-species_palette_values <- c(
-  "#FF4E3A",
-  "#00B0F6",
-  "#FFD23F",
-  "#E76BF3",
-  "#39B600",
-  "#F98400"
-)
-
-species_palette <- setNames(
-  species_palette_values[seq_along(species_choices)],
-  species_choices
+# Built dynamically — scales to any number of species.
+# Uses curated colours for n <= 6, then colorspace::qualitative_hcl().
+# See R/species_palette.R for details.
+species_palette <- make_species_palette(species_choices)
 )

@@ -87,7 +87,8 @@ fluidPage(
         min     = 0,
         max     = 1,
         value   = 0.7,
-        step    = 0.05
+        step    = 0.05,
+        ticks   = FALSE
       ),
       
       hr(),

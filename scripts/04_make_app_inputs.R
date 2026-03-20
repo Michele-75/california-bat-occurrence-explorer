@@ -1,8 +1,8 @@
 # R/04_make_app_inputs.R
 # Run with:
-# source(here::here("processing_scripts", "04_make_app_inputs.R"))
+# source(here::here("scripts", "04_make_app_inputs.R"))
 
-source(here::here("processing_scripts", "00_setup_app.R"))
+source(here::here("scripts", "00_setup_app.R"))
 
 library(sf)
 library(dplyr)

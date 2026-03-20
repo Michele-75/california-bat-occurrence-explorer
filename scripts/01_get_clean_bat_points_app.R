@@ -1,8 +1,8 @@
 # R/01_get_clean_bat_points_app.R
 # Run with:
-# source(here::here("processing_scripts", "01_get_clean_bat_points_app.R"))
+# source(here::here("scripts", "01_get_clean_bat_points_app.R"))
 
-source(here::here("processing_scripts", "00_setup_app.R"))
+source(here::here("scripts", "00_setup_app.R"))
 
 library(rgbif)
 library(janitor)

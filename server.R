@@ -34,9 +34,6 @@ function(input, output, session) {
       addMapPane("gridPane", zIndex = 410) |>
       addMapPane("pointPane", zIndex = 420) |>
       setView(lng = -119.5, lat = 37.2, zoom = 6) |>
-      # Add floating controls: zoom hint + reset view button.
-      # Uses onRender (fires once at map creation) to inject
-      # lightweight HTML controls directly into the Leaflet map.
       htmlwidgets::onRender(sprintf("
         function(el, x) {
           var map = this;

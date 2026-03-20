@@ -76,8 +76,8 @@ function(input, output, session) {
                       value = year_range)
     updateSliderInput(session, "year_animate",
                       value = year_range[1])
-    updateRadioButtons(session, "covariate_layer",
-                       selected = "pop_density")
+    updateSelectInput(session, "covariate_layer",
+                      selected = "pop_density")
     updateCheckboxInput(session, "show_points",
                         value = TRUE)
     updateSliderInput(session, "grid_opacity",

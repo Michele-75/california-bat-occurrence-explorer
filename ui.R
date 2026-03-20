@@ -7,10 +7,10 @@ page_sidebar(
   
   title = div(
     style = "display:flex; align-items:center; gap:12px;",
-    span("California Bat Observations Explorer",
+    span("California Bat Occurrence Explorer",
          style = "font-size:1.4rem; font-weight:700; color:#ffffff;"),
-    span("GBIF \u00b7 10 km grid \u00b7 environmental covariates",
-         style = "font-size:0.85rem; color:#d4e0d4; font-weight:400;"),
+    span("Explore bat species observations across environmental and land-use gradients",
+         style = "font-size:0.82rem; color:#d4e0d4; font-weight:400;"),
     # Info button — opens About modal
     tags$button(
       type = "button",
@@ -272,7 +272,7 @@ page_sidebar(
   tags$div(
     class = "modal fade", id = "aboutModal", tabindex = "-1",
     tags$div(
-      class = "modal-dialog",
+      class = "modal-dialog modal-lg",
       tags$div(
         class = "modal-content",
         style = "background:#fafaf7;",
@@ -288,23 +288,63 @@ page_sidebar(
         tags$div(
           class = "modal-body",
           style = "font-size:0.88rem; color:#3a4a3a; line-height:1.6;",
-          p("Interactive map of GBIF bat occurrence records across",
-            "California, overlaid on a 10 km statewide grid with",
-            "precomputed environmental covariates."),
+          
+          p("This interactive tool maps bat occurrence records from the",
+            "Global Biodiversity Information Facility (GBIF) across California,",
+            "overlaid on a 10 km statewide grid with precomputed environmental",
+            "covariates. Filter by species and year to explore how bat",
+            "observations relate to light pollution, land development,",
+            "population density, and protected area coverage."),
+          
           tags$div(
-            style = "margin:12px 0;",
+            style = "margin:14px 0;",
+            tags$strong("How to use"),
+            tags$ul(
+              style = "padding-left:20px; margin-top:4px; margin-bottom:0;",
+              tags$li("Select one or more species and a year range to filter observations"),
+              tags$li("Switch to Animate mode to watch observations accumulate over time"),
+              tags$li("Click any point or grid cell for detailed information"),
+              tags$li("Shift + drag on the map to zoom into an area of interest"),
+              tags$li("Adjust background opacity to balance the covariate layer against the basemap")
+            )
+          ),
+          
+          tags$div(
+            style = "margin:14px 0;",
             tags$strong("Data sources"),
             tags$ul(
               style = "padding-left:20px; margin-top:4px; margin-bottom:0;",
-              tags$li("Bat occurrences: GBIF"),
-              tags$li("Light pollution: VIIRS nighttime radiance"),
+              tags$li("Bat occurrences: GBIF (Global Biodiversity Information Facility)"),
+              tags$li("Light pollution: VIIRS nighttime radiance (annual composites)"),
               tags$li("Developed land: NLCD 2019"),
-              tags$li("Population density: 2020 raster"),
-              tags$li("Protected areas: PAD-US GAP 1\u20133")
+              tags$li("Population density: 2020 gridded population raster"),
+              tags$li("Protected areas: PAD-US GAP Status 1\u20133")
             )
           ),
-          p(style = "margin-bottom:0; color:#6c7a6c;",
-            "Built with R, Shiny, Leaflet, and sf.")
+          
+          tags$div(
+            style = "margin:14px 0; padding:10px 12px; background:#f0f1ec; border-radius:4px; font-size:0.82rem; color:#4a5a44;",
+            tags$strong("A note on interpreting the data: "),
+            "GBIF occurrence records reflect where observers have surveyed,",
+            "not necessarily where species are most abundant. Clusters of",
+            "observations may indicate targeted research efforts rather than",
+            "higher species density. Areas near population centers also tend",
+            "to have more records simply because there are more people",
+            "available to make observations. Spatial gaps are often unsampled",
+            "areas, not confirmed absences.",
+            tags$br(), tags$br(),
+            "Click any observation point for details \u2014 each popup includes",
+            "a direct link to the full record on GBIF."
+          ),
+          
+          tags$div(
+            style = "margin:14px 0;",
+            tags$strong("About the author"),
+            p(style = "margin-top:4px; margin-bottom:0;",
+              "Built by Michele Perry as a personal project, inspired by",
+              "coursework in the Yale Environmental Data Science Certificate",
+              "Program. Developed with R, Shiny, Leaflet, and sf.")
+          )
         )
       )
     )

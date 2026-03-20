@@ -42,10 +42,12 @@ make_point_popup <- function(dat) {
     paste0(
       "<strong>Species:</strong> %s<br/>",
       "<strong>Year:</strong> %s<br/>",
-      "<strong>GBIF ID:</strong> %s"
+      "<strong>GBIF ID:</strong> <a href='https://www.gbif.org/occurrence/%s' ",
+      "target='_blank' style='color:#3a6b4c;'>%s</a>"
     ),
     dat$species_label,
     dat$year,
+    dat$gbif_id,
     dat$gbif_id
   )
 }

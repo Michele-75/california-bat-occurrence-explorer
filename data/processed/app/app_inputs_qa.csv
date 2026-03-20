@@ -5,7 +5,7 @@ n_covariate_rows,4355
 n_unique_covariate_cell_id,4355
 grid_cell_ids_missing_in_covariates,0
 covariate_cell_ids_missing_in_grid,0
-n_bat_points,1747
-n_species,6
+n_bat_points,3292
+n_species,7
 year_min,2012
 year_max,2026

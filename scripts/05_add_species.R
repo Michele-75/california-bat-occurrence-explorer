@@ -37,8 +37,8 @@ library(tibble)
 NEW_SPECIES <- c(
   "Tadarida brasiliensis",
   "Eptesicus fuscus",
-  "Antrozous pallidus"
-  #"Parastrellus hesperus"
+  "Antrozous pallidus",
+  "Corynorhinus townsendii"
 )
 
 MIN_YEAR <- 2012L

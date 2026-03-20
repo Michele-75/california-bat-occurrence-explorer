@@ -38,7 +38,8 @@ NEW_SPECIES <- c(
   "Tadarida brasiliensis",
   "Eptesicus fuscus",
   "Antrozous pallidus",
-  "Corynorhinus townsendii"
+  "Corynorhinus townsendii",
+  "Parastrellus hesperus"
 )
 
 MIN_YEAR <- 2012L

@@ -6,7 +6,6 @@
 
 library(shiny)
 library(leaflet)
-library(leaflet.extras)
 library(sf)
 library(dplyr)
 library(readr)

@@ -34,46 +34,24 @@ function(input, output, session) {
       addMapPane("gridPane", zIndex = 410) |>
       addMapPane("pointPane", zIndex = 420) |>
       setView(lng = -119.5, lat = 37.2, zoom = 6) |>
-      # Draw toolbar — rectangle only, for zoom-to-area
-      addDrawToolbar(
-        targetGroup  = "draw",
-        polylineOptions  = FALSE,
-        polygonOptions   = FALSE,
-        circleOptions    = FALSE,
-        markerOptions    = FALSE,
-        circleMarkerOptions = FALSE,
-        rectangleOptions = drawRectangleOptions(
-          shapeOptions = drawShapeOptions(
-            color       = "#FF4E3A",
-            fillColor   = "#FF4E3A",
-            fillOpacity = 0.1,
-            weight      = 2
-          )
-        ),
-        editOptions = editToolbarOptions(
-          edit = FALSE,
-          remove = TRUE
-        )
-      )
-  })
-  
-  # ---- Draw-to-zoom: zoom to drawn rectangle, then remove it ----
-  observeEvent(input$map_draw_new_feature, {
-    feat <- input$map_draw_new_feature
-    
-    if (feat$geometry$type == "Polygon") {
-      coords <- feat$geometry$coordinates[[1]]
-      lngs <- vapply(coords, `[[`, numeric(1), 1)
-      lats <- vapply(coords, `[[`, numeric(1), 2)
-      
-      leafletProxy("map") |>
-        fitBounds(
-          lng1 = min(lngs), lat1 = min(lats),
-          lng2 = max(lngs), lat2 = max(lats)
-        ) |>
-        removeShape(layerId = feat$properties$`_leaflet_id`) |>
-        clearGroup("draw")
-    }
+      # Zoom-to-area: hold Shift and drag to draw a rectangle.
+      # Leaflet has this built in (L.Map.BoxZoom), but it's bound
+      # to Shift+drag by default and there's no visual hint.
+      # This onRender adds a small instruction label and ensures
+      # the behaviour is active.
+      htmlwidgets::onRender("
+        function(el, x) {
+          // Leaflet's built-in box zoom is enabled by default with Shift+drag.
+          // Add a hint control so users know the feature exists.
+          var hint = L.control({ position: 'topleft' });
+          hint.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'leaflet-control');
+            div.innerHTML = '<div style=\"background:rgba(255,255,255,0.9);padding:4px 8px;border-radius:4px;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:#333;\">Shift + drag to zoom to area</div>';
+            return div;
+          };
+          hint.addTo(this);
+        }
+      ")
   })
   
   # ---- Grid layer observer ----

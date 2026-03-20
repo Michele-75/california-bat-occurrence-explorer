@@ -201,7 +201,7 @@ format_layer_value <- function(x, var) {
 
 # Build the leaflet palette function for a given variable.
 # Returns a list with:
-#   pal  — the colour function (pass it raw untransformed values)
+#   pal  — the color function (pass it raw untransformed values)
 #   type — "bin" or "numeric" (needed so the legend builder knows
 #          which addLegend signature to use)
 
@@ -442,8 +442,8 @@ server <- function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() |>
       addProviderTiles(providers$CartoDB.Positron) |>
-      addMapPane("gridPane", zIndex = 410) |>
-      addMapPane("pointPane", zIndex = 420) |>
+      addMapPane("gridPane", zIndex = 410) |> #Separate pane for the grid, under points
+      addMapPane("pointPane", zIndex = 420) |> #Separate pane for points, above grid
       setView(lng = -119.5, lat = 37.2, zoom = 6)
   })
   
@@ -455,7 +455,7 @@ server <- function(input, output, session) {
     meta <- layer_meta(var)
     pal_obj <- make_palette(app_grid[[var]], var)
     
-    # Get fill colours for every grid cell
+    # Get fill colors for every grid cell
     fill_vals <- pal_obj$pal(app_grid[[var]])
     
     proxy <- leafletProxy("map", data = app_grid) |>

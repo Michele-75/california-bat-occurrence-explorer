@@ -38,6 +38,91 @@ page_sidebar(
     "navbar-bg"     = "#3e5e47"
   ),
   
+  # Map interaction — hover effect + persistent highlight while popup is open
+  tags$head(
+    tags$style(HTML(
+      "/* Base transition for all interactive elements */
+       .leaflet-interactive {
+         transition: stroke-width 0.15s, stroke 0.15s, filter 0.15s, transform 0.15s;
+         transform-origin: center;
+         transform-box: fill-box;
+       }
+
+       /* Default hover for all: subtle dark outline (grid cells) */
+       .leaflet-interactive:hover,
+       .leaflet-interactive.popup-active-grid {
+         stroke-width: 2 !important;
+         stroke: #333333 !important;
+         stroke-opacity: 0.8 !important;
+       }
+
+       /* Points override: glow + scale (more specific selector wins) */
+       .leaflet-interactive.point-marker:hover,
+       .leaflet-interactive.popup-active-point {
+         stroke-width: 3 !important;
+         stroke: #ffffff !important;
+         stroke-opacity: 1 !important;
+         filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)) !important;
+         transform: scale(1.8);
+       }"
+    )),
+    tags$script(HTML("
+      $(document).on('shiny:connected', function() {
+        var check = setInterval(function() {
+          var container = document.querySelector('.leaflet-container');
+          if (!container || !container._leaflet_id) return;
+          clearInterval(check);
+
+          var widget = HTMLWidgets.find('.leaflet-container');
+          if (!widget) return;
+          var map = widget.getMap();
+          if (!map) return;
+
+          // Tag point markers with a CSS class so we can style them differently
+          function tagLayer(layer) {
+            if (!layer._path || layer._tagged) return;
+            if (layer.options && layer.options.pane === 'pointPane') {
+              layer._path.classList.add('point-marker');
+            }
+            layer._tagged = true;
+          }
+
+          map.eachLayer(function(layer) { tagLayer(layer); });
+          map.on('layeradd', function(e) { tagLayer(e.layer); });
+
+          // Popup open/close: add class based on which pane the layer belongs to
+          map.on('popupopen', function(e) {
+            var layer = e.popup._source;
+            if (layer && layer._path) {
+              if (layer.options && layer.options.pane === 'pointPane') {
+                layer._path.classList.add('popup-active-point');
+              } else {
+                layer._path.classList.add('popup-active-grid');
+              }
+            }
+          });
+
+          map.on('popupclose', function(e) {
+            var layer = e.popup._source;
+            if (layer && layer._path) {
+              layer._path.classList.remove('popup-active-point');
+              layer._path.classList.remove('popup-active-grid');
+            }
+          });
+
+          // Opacity handler: updates grid cell fill opacity without redrawing
+          Shiny.addCustomMessageHandler('updateGridOpacity', function(opacity) {
+            map.eachLayer(function(layer) {
+              if (layer.options && layer.options.pane === 'gridPane' && layer.setStyle) {
+                layer.setStyle({ fillOpacity: opacity });
+              }
+            });
+          });
+        }, 300);
+      });
+    "))
+  ),
+  
   # ---- Sidebar ----
   sidebar = sidebar(
     width = 280,

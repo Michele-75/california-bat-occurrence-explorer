@@ -85,9 +85,10 @@ function(input, output, session) {
   })
   
   # ---- Grid layer observer ----
-  # Redraws polygons when covariate layer OR opacity changes.
+  # Redraws polygons only when covariate layer changes.
+  # Opacity changes are handled separately via JavaScript (no redraw).
   observe({
-    req(input$covariate_layer, input$grid_opacity)
+    req(input$covariate_layer)
     
     var     <- input$covariate_layer
     meta    <- layer_meta(var)
@@ -101,7 +102,7 @@ function(input, output, session) {
       addPolygons(
         layerId     = app_grid$cell_id,
         fillColor   = fill_vals,
-        fillOpacity = input$grid_opacity,
+        fillOpacity = isolate(input$grid_opacity),
         color       = "#666666",
         weight      = 0.3,
         popup       = make_grid_popup(app_grid, var),
@@ -140,6 +141,13 @@ function(input, output, session) {
           layerId   = "bg_legend"
         )
     }
+  })
+  
+  # ---- Opacity observer ----
+  # Sends opacity value to JavaScript for instant in-place update.
+  # No polygon redraw needed.
+  observeEvent(input$grid_opacity, {
+    session$sendCustomMessage("updateGridOpacity", input$grid_opacity)
   })
   
   # ---- Observation points observer ----

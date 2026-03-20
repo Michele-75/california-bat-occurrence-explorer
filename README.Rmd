@@ -1,0 +1,117 @@
+# California Bat Occurrence Explorer
+
+An interactive Shiny web application for exploring bat occurrence records across California, overlaid on a 10 km statewide grid with environmental covariates.
+
+Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program](https://catalog.yale.edu/).
+
+## Features
+
+-   **Species filtering** — select one or more bat species from 8 California species sourced from GBIF
+-   **Temporal exploration** — filter by year range or use the cumulative animation to watch observations build up over time
+-   **Environmental covariates** — toggle between four background layers on a 10 km grid:
+    -   Population density (2020 gridded raster)
+    -   Light pollution (VIIRS nighttime radiance, annual composites)
+    -   Developed land (NLCD 2019)
+    -   Protected areas (PAD-US GAP Status 1–3)
+-   **Interactive popups** — click any observation point for species, year, and a direct link to the full GBIF record; click any grid cell for all covariate values
+-   **Hover effects** — points glow and scale on hover; grid cells highlight on hover
+-   **Shift + drag** to zoom into an area of interest
+-   **Adjustable background opacity** with instant updates
+-   **Reset controls** — reset all filters or reset the map view independently
+
+## Live App
+
+> *Link to shinyapps.io deployment will be added here.*
+
+## Project Structure
+
+```         
+├── global.R                 # Libraries, data loading, constants
+├── ui.R                     # User interface (bslib / Bootstrap 5)
+├── server.R                 # Reactive logic and map observers
+├── R/                       # Helper functions (auto-sourced)
+│   ├── layer_config.R       # Covariate layer metadata and palettes
+│   ├── popups.R             # Grid and point popup builders
+│   ├── species_key.R        # Species legend HTML builder
+│   └── species_palette.R    # Dynamic colour palette generator
+├── scripts/                 # Preprocessing pipeline (run manually)
+│   ├── 00_setup_app.R       # Directory setup and constants
+│   ├── 01_get_clean_bat_points_app.R   # GBIF download and cleaning
+│   ├── 02_build_ca_grid_10km_app.R     # 10 km California grid
+│   ├── 03_build_grid_covariates_app.R  # Covariate extraction
+│   ├── 04_make_app_inputs.R            # Standardise app inputs
+│   └── 05_add_species.R               # Add new species incrementally
+├── data/
+│   └── processed/
+│       └── app/
+│           ├── ca_grid_10km.gpkg       # California 10 km grid
+│           ├── bat_points_app.rds      # Cleaned bat occurrence points
+│           └── grid_covariates_app.csv # Precomputed grid covariates
+└── README.md
+```
+
+## Running Locally
+
+### Prerequisites
+
+-   R ≥ 4.1
+-   Required packages: `shiny`, `bslib`, `leaflet`, `sf`, `dplyr`, `readr`, `htmltools`, `scales`
+-   Optional: `colorspace` (required if using more than 6 species)
+
+### Quick Start
+
+1.  Clone the repository:
+
+    ``` bash
+    git clone https://github.com/YOUR_USERNAME/california-bat-explorer.git
+    cd california-bat-explorer
+    ```
+
+2.  If data files are included in the repo, launch the app directly:
+
+    ``` r
+    shiny::runApp()
+    ```
+
+3.  If data files are not included, run the preprocessing pipeline first (requires GBIF credentials in `.Renviron` and raw covariate rasters):
+
+    ``` r
+    source("scripts/00_setup_app.R")
+    source("scripts/01_get_clean_bat_points_app.R")
+    source("scripts/02_build_ca_grid_10km_app.R")
+    source("scripts/03_build_grid_covariates_app.R")
+    source("scripts/04_make_app_inputs.R")
+    ```
+
+### Adding More Species
+
+Use `scripts/05_add_species.R` to add new bat species incrementally. Edit the `NEW_SPECIES` vector in the script, run it, then re-run `scripts/04_make_app_inputs.R` to re-standardise app inputs. The species colour palette scales dynamically.
+
+## Data Sources
+
+| Layer | Source | Resolution |
+|-------------------|----------------------|--------------------------------|
+| Bat occurrences | [GBIF](https://www.gbif.org/) | Point records |
+| Light pollution | [VIIRS Nighttime Lights](https://eogdata.mines.edu/products/vnl/) | \~500 m |
+| Developed land | [NLCD 2019](https://www.mrlc.gov/) | 30 m |
+| Population density | [Gridded Population of the World](https://sedac.ciesin.columbia.edu/data/collection/gpw-v4) | \~1 km |
+| Protected areas | [PAD-US](https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview) | Vector polygons |
+
+## Interpreting the Data
+
+GBIF occurrence records reflect where observers have surveyed, not necessarily where species are most abundant. Clusters of observations may indicate targeted research efforts rather than higher species density. Areas near population centers tend to have more records because there are more people available to make observations. Spatial gaps are often unsampled areas, not confirmed absences.
+
+Each observation popup includes a direct link to the full GBIF record, where you can view the collector, institution, basis of record, and original dataset.
+
+## Tech Stack
+
+-   **R / Shiny** — application framework
+-   **bslib** — Bootstrap 5 theming
+-   **Leaflet** — interactive web mapping
+-   **sf** — spatial data handling
+-   **terra** — raster processing (preprocessing only)
+-   **exactextractr** — zonal statistics (preprocessing only)
+
+## License
+
+This project is intended for educational and portfolio purposes.

@@ -44,24 +44,27 @@ page_sidebar(
     
     # Compact spacing overrides
     tags$style(HTML("
-      .sidebar { padding-top: 0.4rem !important; }
-      .sidebar .form-group { margin-bottom: 0.15rem; }
-      .sidebar .control-label { margin-bottom: 0.05rem; font-size: 0.82rem; }
-      .sidebar .shiny-input-container { margin-bottom: 0.15rem; }
+      .sidebar { padding-top: 0.45rem !important; }
+      .sidebar > .sidebar-content { gap: 0.65rem !important; }
+      .sidebar .form-group { margin-bottom: 0.35rem; }
+      .sidebar .control-label { margin-bottom: 4px; font-size: 0.82rem; font-weight: 600; color: #2c3e2d; }
+      .sidebar .shiny-input-container { margin-bottom: 0.3rem; }
       .sidebar .radio { margin-top: 0; margin-bottom: 0; }
-      .sidebar hr { margin: 3px 0; border-color: #ccd0c5; }
+      .sidebar hr { margin: 14px 0; border-color: #b0b5a8; border-width: 1.5px; }
       .sidebar .selectize-input { min-height: 0; padding: 3px 6px; font-size: 0.82rem;
         max-height: 105px; overflow-y: auto; }
       .sidebar .selectize-input .item { padding: 1px 5px; margin: 1px; font-size: 0.78rem; }
       .sidebar .selectize-dropdown { font-size: 0.82rem; }
-      .sidebar .checkbox { margin-top: 0; margin-bottom: 0; }
+      .sidebar .checkbox { margin-top: 0; margin-bottom: 0.3rem; }
       .sidebar .checkbox label { font-size: 0.8rem; }
       .year-group .shiny-input-container { margin-bottom: 0; }
       .year-group .form-group { margin-bottom: 0; }
-      .section-label { font-weight:600; font-size:0.75rem; color:#5a6b52;
-        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1px; }
-      #species_filter_wrapper .shiny-input-container { margin-top: 0; margin-bottom: 0.15rem; }
+      .year-group .year-toggle { margin-bottom: 10px; }
+      .section-label { font-weight:700; font-size:0.82rem; color:#3e5e47;
+        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+      #species_filter_wrapper .shiny-input-container { margin-top: 0 !important; margin-bottom: 0.15rem !important; }
       #species_filter_wrapper .form-group { margin-top: 0; margin-bottom: 0; }
+      #species_filter_wrapper { margin-bottom: 0.2rem !important; }
     ")),
     
     # -- Observation filters --
@@ -70,7 +73,7 @@ page_sidebar(
     tags$div(
       id = "species_filter_wrapper",
       style = "margin-top:0; margin-bottom:0;",
-      tags$label(style = "font-size:0.8rem; font-weight:500; margin:0; padding:0; display:block; line-height:1.3;",
+      tags$label(style = "font-size:0.82rem; font-weight:600; color:#2c3e2d; margin:0 0 4px 0; padding:0; display:block; line-height:1.3;",
                  "Species"),
       selectizeInput(
         inputId  = "species_filter",
@@ -90,8 +93,9 @@ page_sidebar(
       class = "year-group",
       style = "margin-bottom:0.2rem;",
       tags$div(
-        style = "display:flex; align-items:center; justify-content:space-between; margin-bottom:0;",
-        tags$span(style = "font-size:0.8rem; font-weight:500; color:#2c3e2d;", "Years"),
+        class = "year-toggle",
+        style = "display:flex; align-items:center; justify-content:space-between;",
+        tags$span(style = "font-size:0.82rem; font-weight:600; color:#2c3e2d;", "Years"),
         tags$div(
           style = "display:flex; align-items:center; gap:2px; font-size:0.78rem;",
           radioButtons(

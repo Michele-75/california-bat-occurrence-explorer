@@ -2,7 +2,6 @@
 # global.R
 # Libraries, data loading, constants, species palette
 # Runs once at app startup (before ui.R and server.R).
-# Files in R/ are auto-sourced by Shiny before this file runs.
 # ============================================================
 
 library(shiny)
@@ -12,6 +11,13 @@ library(dplyr)
 library(readr)
 library(htmltools)
 library(scales)
+
+# Source helper functions explicitly.
+# Shiny >= 1.5 auto-sources R/, but the load order relative to
+# global.R is not guaranteed in all launch methods.
+for (f in sort(list.files("R", pattern = "\\.R$", full.names = TRUE))) {
+  source(f, local = FALSE)
+}
 
 # -----------------------------
 # File paths
@@ -85,4 +91,3 @@ year_range <- range(bat_points$year, na.rm = TRUE)
 # Uses curated colours for n <= 6, then colorspace::qualitative_hcl().
 # See R/species_palette.R for details.
 species_palette <- make_species_palette(species_choices)
-)

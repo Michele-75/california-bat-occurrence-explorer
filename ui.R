@@ -87,8 +87,15 @@ fluidPage(
         min     = 0,
         max     = 1,
         value   = 0.7,
-        step    = 0.05,
-        ticks   = FALSE
+        step    = 0.05
+      ),
+      
+      # Reset all filters to defaults
+      actionButton(
+        inputId = "reset_filters",
+        label   = "Reset all filters",
+        icon    = icon("rotate-left"),
+        width   = "100%"
       ),
       
       hr(),

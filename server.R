@@ -34,24 +34,57 @@ function(input, output, session) {
       addMapPane("gridPane", zIndex = 410) |>
       addMapPane("pointPane", zIndex = 420) |>
       setView(lng = -119.5, lat = 37.2, zoom = 6) |>
-      # Zoom-to-area: hold Shift and drag to draw a rectangle.
-      # Leaflet has this built in (L.Map.BoxZoom), but it's bound
-      # to Shift+drag by default and there's no visual hint.
-      # This onRender adds a small instruction label and ensures
-      # the behaviour is active.
-      htmlwidgets::onRender("
+      # Add floating controls: zoom hint + reset view button.
+      # Uses onRender (fires once at map creation) to inject
+      # lightweight HTML controls directly into the Leaflet map.
+      htmlwidgets::onRender(sprintf("
         function(el, x) {
-          // Leaflet's built-in box zoom is enabled by default with Shift+drag.
-          // Add a hint control so users know the feature exists.
+          var map = this;
+
+          // Zoom hint
           var hint = L.control({ position: 'topleft' });
-          hint.onAdd = function(map) {
+          hint.onAdd = function() {
             var div = L.DomUtil.create('div', 'leaflet-control');
             div.innerHTML = '<div style=\"background:rgba(255,255,255,0.9);padding:4px 8px;border-radius:4px;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:#333;\">Shift + drag to zoom to area</div>';
             return div;
           };
-          hint.addTo(this);
+          hint.addTo(map);
+
+          // Reset view button
+          var resetBtn = L.control({ position: 'topleft' });
+          resetBtn.onAdd = function() {
+            var btn = L.DomUtil.create('div', 'leaflet-control');
+            btn.innerHTML = '<button style=\"background:white;border:none;padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:#333;font-weight:500;\" onmouseover=\"this.style.background=\\'#f0f0f0\\'\" onmouseout=\"this.style.background=\\'white\\'\">%s Reset view</button>';
+            L.DomEvent.disableClickPropagation(btn);
+            btn.querySelector('button').addEventListener('click', function() {
+              map.setView([%f, %f], %d);
+            });
+            return btn;
+          };
+          resetBtn.addTo(map);
         }
-      ")
+      ", "&#x21BA;", 37.2, -119.5, 6))
+  })
+  
+  # ---- Reset filters: restore all sidebar inputs to defaults ----
+  observeEvent(input$reset_filters, {
+    updateSelectizeInput(session, "species_filter",
+                         selected = species_choices)
+    updateRadioButtons(session, "year_mode",
+                       selected = "range")
+    updateSliderInput(session, "year_range",
+                      value = year_range)
+    updateSliderInput(session, "year_animate",
+                      value = year_range[1])
+    updateRadioButtons(session, "covariate_layer",
+                       selected = "pop_density")
+    updateCheckboxInput(session, "show_points",
+                        value = TRUE)
+    updateSliderInput(session, "grid_opacity",
+                      value = 0.7)
+    # Also reset the map view
+    leafletProxy("map") |>
+      setView(lng = -119.5, lat = 37.2, zoom = 6)
   })
   
   # ---- Grid layer observer ----

@@ -134,7 +134,9 @@ function(input, output, session) {
         addLegend(
           position  = "bottomright",
           pal       = pal_obj$pal_fn,
-          values    = app_grid[[var]],
+          values    = if (!is.null(meta$legend_domain)) meta$legend_domain
+          else if (!is.null(meta$domain)) meta$domain
+          else app_grid[[var]],
           title     = meta$legend_title,
           opacity   = 1,
           labFormat = labelFormat(digits = meta$digits),

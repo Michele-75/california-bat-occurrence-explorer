@@ -59,7 +59,9 @@ layer_meta <- function(var) {
       legend_title = "Developed land (%)",
       digits       = 1,
       pal_type     = "numeric",
-      transform    = identity
+      transform    = identity,
+      domain       = c(0, 100.1),
+      legend_domain = c(0, 100)
     ),
     
     "pct_protected" = list(
@@ -67,7 +69,9 @@ layer_meta <- function(var) {
       legend_title = "Protected area (%)",
       digits       = 1,
       pal_type     = "numeric",
-      transform    = identity
+      transform    = identity,
+      domain       = c(0, 100.1),
+      legend_domain = c(0, 100)
     ),
     
     stop("Unknown layer: ", var)
@@ -116,9 +120,10 @@ make_palette <- function(x, var) {
     list(pal = wrapped, pal_fn = pal_fn, type = "bin")
     
   } else {
+    dom <- if (!is.null(meta$domain)) meta$domain else range(x, na.rm = TRUE)
     pal_fn <- colorNumeric(
       palette  = "viridis",
-      domain   = x,
+      domain   = dom,
       na.color = "transparent"
     )
     list(pal = pal_fn, pal_fn = pal_fn, type = "numeric")

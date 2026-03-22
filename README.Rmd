@@ -63,7 +63,7 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
 1.  Clone the repository:
 
     ``` bash
-    git clone https://github.com/YOUR_USERNAME/california-bat-explorer.git
+    git clone https://github.com/Michele-75/california-bat-explorer.git
     cd california-bat-explorer
     ```
 

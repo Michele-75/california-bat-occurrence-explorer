@@ -4,7 +4,7 @@
 
 An interactive Shiny web application for exploring bat occurrence records across California, overlaid on a 10 km statewide grid with environmental covariates.
 
-Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program.](https://environment.yale.edu/certificates/data)
+Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program](https://environment.yale.edu/certificates/data).
 
 ## Features
 
@@ -23,7 +23,7 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
 
 ## Live App
 
-> [**California Bat Occurrence Explorer**](https://github.com/Michele-75/california-bat-occurence-explorer)
+[**California Bat Occurrence Explorer**](https://michele-75.shinyapps.io/california-bat-occurrence-explorer/)
 
 ## Project Structure
 
@@ -65,8 +65,8 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
 1.  Clone the repository:
 
     ``` bash
-    git clone https://github.com/Michele-75/california-bat-explorer.git
-    cd california-bat-explorer
+    git clone https://github.com/Michele-75/california-bat-occurrence-explorer.git
+    cd california-bat-occurrence-explorer
     ```
 
 2.  Launch the app (processed data files are included in the repo):
@@ -86,11 +86,23 @@ The `scripts/` folder contains the full preprocessing pipeline if you want to re
     -   [PAD-US](https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview) geodatabase → `data/raw/covariates/`
     -   [Gridded Population of the World](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-gpwv4-popdens-r11-4.11) 2020 raster → `data/raw/covariates/`
 
-Then run the scripts in order: `r    source("scripts/00_setup_app.R")    source("scripts/01_get_clean_bat_points_app.R")    source("scripts/02_build_ca_grid_10km_app.R")    source("scripts/03_build_grid_covariates_app.R")    source("scripts/04_make_app_inputs.R")`
+Then run the scripts in order:
+
+``` r
+source("scripts/00_setup_app.R")
+source("scripts/01_get_clean_bat_points_app.R")
+source("scripts/02_build_ca_grid_10km_app.R")
+source("scripts/03_build_grid_covariates_app.R")
+source("scripts/04_make_app_inputs.R")
+```
 
 ### Adding More Species
 
 Use `scripts/05_add_species.R` to add new bat species incrementally. Edit the `NEW_SPECIES` vector in the script, run it, then re-run `scripts/04_make_app_inputs.R` to re-standardize app inputs. The species color palette scales dynamically.
+
+### Changing the Year Range
+
+The app currently includes GBIF observations from 2012 onward. To adjust this, edit the `MIN_YEAR` variable in `scripts/01_get_clean_bat_points_app.R` (and in `scripts/05_add_species.R` if adding species), then rerun the pipeline starting from script 01. The year slider in the app adapts automatically to whatever range is present in the data — no app code changes needed.
 
 ## Data Sources
 

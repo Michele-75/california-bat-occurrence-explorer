@@ -7,7 +7,12 @@ function(input, output, session) {
   
   # ---- Filtered observation points ----
   filtered_points <- reactive({
-    req(input$species_filter, input$year_mode)
+    req(input$year_mode)
+    
+    # Return empty sf if no species selected
+    if (is.null(input$species_filter) || length(input$species_filter) == 0) {
+      return(bat_points[0, ])
+    }
     
     if (input$year_mode == "animate") {
       req(input$year_animate)

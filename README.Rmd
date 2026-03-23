@@ -2,7 +2,7 @@
 
 An interactive Shiny web application for exploring bat occurrence records across California, overlaid on a 10 km statewide grid with environmental covariates.
 
-Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program](https://catalog.yale.edu/).
+Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program.](https://environment.yale.edu/certificates/data)
 
 ## Features
 
@@ -21,7 +21,7 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
 
 ## Live App
 
-> *Link to shinyapps.io deployment will be added here.*
+> [**California Bat Occurrence Explorer**](https://github.com/Michele-75/california-bat-occurence-explorer)
 
 ## Project Structure
 
@@ -33,7 +33,7 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
 │   ├── layer_config.R       # Covariate layer metadata and palettes
 │   ├── popups.R             # Grid and point popup builders
 │   ├── species_key.R        # Species legend HTML builder
-│   └── species_palette.R    # Dynamic colour palette generator
+│   └── species_palette.R    # Dynamic color palette generator
 ├── scripts/                 # Preprocessing pipeline (run manually)
 │   ├── 00_setup_app.R       # Directory setup and constants
 │   ├── 01_get_clean_bat_points_app.R   # GBIF download and cleaning
@@ -67,34 +67,37 @@ Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Da
     cd california-bat-explorer
     ```
 
-2.  If data files are included in the repo, launch the app directly:
+2.  Launch the app (processed data files are included in the repo):
 
     ``` r
     shiny::runApp()
     ```
 
-3.  If data files are not included, run the preprocessing pipeline first (requires GBIF credentials in `.Renviron` and raw covariate rasters):
+### Reproducing the Data from Scratch (Optional)
 
-    ``` r
-    source("scripts/00_setup_app.R")
-    source("scripts/01_get_clean_bat_points_app.R")
-    source("scripts/02_build_ca_grid_10km_app.R")
-    source("scripts/03_build_grid_covariates_app.R")
-    source("scripts/04_make_app_inputs.R")
-    ```
+The `scripts/` folder contains the full preprocessing pipeline if you want to rebuild the data from source. This requires:
+
+-   **GBIF credentials** — set `GBIF_USER`, `GBIF_PWD`, and `GBIF_EMAIL` in your `.Renviron` file
+-   **Raw covariate rasters** (downloaded manually, not included in the repo due to size):
+    -   [VIIRS Nighttime Lights](https://eogdata.mines.edu/products/vnl/) annual composites → `data/raw/covariates/viirs/`
+    -   [NLCD 2019](https://www.mrlc.gov/) land cover raster → `data/raw/covariates/`
+    -   [PAD-US](https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview) geodatabase → `data/raw/covariates/`
+    -   [Gridded Population of the World](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-gpwv4-popdens-r11-4.11) 2020 raster → `data/raw/covariates/`
+
+Then run the scripts in order: `r    source("scripts/00_setup_app.R")    source("scripts/01_get_clean_bat_points_app.R")    source("scripts/02_build_ca_grid_10km_app.R")    source("scripts/03_build_grid_covariates_app.R")    source("scripts/04_make_app_inputs.R")`
 
 ### Adding More Species
 
-Use `scripts/05_add_species.R` to add new bat species incrementally. Edit the `NEW_SPECIES` vector in the script, run it, then re-run `scripts/04_make_app_inputs.R` to re-standardise app inputs. The species colour palette scales dynamically.
+Use `scripts/05_add_species.R` to add new bat species incrementally. Edit the `NEW_SPECIES` vector in the script, run it, then re-run `scripts/04_make_app_inputs.R` to re-standardize app inputs. The species color palette scales dynamically.
 
 ## Data Sources
 
 | Layer | Source | Resolution |
-|-------------------|----------------------|--------------------------------|
+|-------------------|----------------------|-------------------------------|
 | Bat occurrences | [GBIF](https://www.gbif.org/) | Point records |
 | Light pollution | [VIIRS Nighttime Lights](https://eogdata.mines.edu/products/vnl/) | \~500 m |
 | Developed land | [NLCD 2019](https://www.mrlc.gov/) | 30 m |
-| Population density | [Gridded Population of the World](https://sedac.ciesin.columbia.edu/data/collection/gpw-v4) | \~1 km |
+| Population density | [Gridded Population of the World](https://www.earthdata.nasa.gov/data/catalog/sedac-ciesin-sedac-gpwv4-popdens-r11-4.11) | \~1 km |
 | Protected areas | [PAD-US](https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview) | Vector polygons |
 
 ## Interpreting the Data

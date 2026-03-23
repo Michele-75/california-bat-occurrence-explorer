@@ -117,4 +117,4 @@ Each observation popup includes a direct link to the full GBIF record, where you
 
 ## License
 
-This project is intended for educational and portfolio purposes
+This project is intended for educational and portfolio purposes.

@@ -1,5 +1,7 @@
 # California Bat Occurrence Explorer
 
+![](app-screenshot.png)
+
 An interactive Shiny web application for exploring bat occurrence records across California, overlaid on a 10 km statewide grid with environmental covariates.
 
 Built by **Michele Perry**, inspired by coursework in the [Yale Environmental Data Science Certificate Program.](https://environment.yale.edu/certificates/data)

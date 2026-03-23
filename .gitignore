@@ -16,3 +16,5 @@ data/raw/
 # Credentials
 .Renviron
 rsconnect/
+
+.git-backup/
